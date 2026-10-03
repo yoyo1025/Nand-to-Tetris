@@ -2,7 +2,7 @@ SHELL := /bin/sh
 
 .DEFAULT_GOAL := help
 
-CHAPTER ?= 1
+CHAPTER ?=
 CHIP ?=
 TEST ?=
 INPUT ?=
@@ -27,16 +27,16 @@ help: ## 利用できるコマンドを表示する
 		'  make doctor' \
 		'      Javaと付属ツールを確認します。' \
 		'' \
-		'  make list [CHAPTER=1]' \
+		'  make list CHAPTER=<章>' \
 		'      指定した章のテストスクリプトを一覧表示します。' \
 		'' \
-		'  make test CHIP=Not [CHAPTER=1]' \
+		'  make test CHAPTER=1 CHIP=Not' \
 		'      projects/<章>/<チップ>.tst をHardware Simulatorで実行します。' \
 		'' \
-		'  make test TEST=projects/3/a/Bit.tst' \
+		'  make test CHAPTER=3 TEST=projects/3/a/Bit.tst' \
 		'      指定したテストスクリプトをHardware Simulatorで実行します。' \
 		'' \
-		'  make test [CHAPTER=1]' \
+		'  make test CHAPTER=<章>' \
 		'      指定した章にある全.tstをHardware Simulatorで順に実行します。' \
 		'' \
 		'  make gui | gui-cpu | gui-vm' \
@@ -51,7 +51,7 @@ help: ## 利用できるコマンドを表示する
 		'  make compare EXPECTED=<expected> ACTUAL=<actual>' \
 		'      2ファイルを付属のTextComparerで比較します。' \
 		'' \
-		'  make clean [CHAPTER=1]' \
+		'  make clean CHAPTER=<章>' \
 		'      指定した章以下に生成された.outファイルを削除します。'
 
 doctor: ## Javaと付属ツールの存在を確認する
@@ -73,11 +73,13 @@ doctor: ## Javaと付属ツールの存在を確認する
 
 list: ## 指定した章の.tstファイルを一覧表示する
 	@set -eu; \
+	test -n "$(CHAPTER)" || { echo 'error: CHAPTER=<章> を指定してください。' >&2; exit 2; }; \
 	test -d "$(PROJECT_DIR)" || { echo "error: $(PROJECT_DIR) が見つかりません。" >&2; exit 1; }; \
 	find "$(PROJECT_DIR)" -type f -name '*.tst' -print | LC_ALL=C sort
 
 test: ## Hardware Simulatorで単体または章内の全テストを実行する
 	@set -eu; \
+	test -n "$(CHAPTER)" || { echo 'error: CHAPTER=<章> を指定してください。' >&2; exit 2; }; \
 	if [ -n "$(TEST)" ]; then \
 		test_file="$(TEST)"; \
 	elif [ -n "$(CHIP)" ]; then \
@@ -145,5 +147,6 @@ compare: ## EXPECTEDとACTUALで指定したファイルを比較する
 
 clean: ## 指定した章以下の.outファイルを削除する
 	@set -eu; \
+	test -n "$(CHAPTER)" || { echo 'error: CHAPTER=<章> を指定してください。' >&2; exit 2; }; \
 	test -d "$(PROJECT_DIR)" || { echo "error: $(PROJECT_DIR) が見つかりません。" >&2; exit 1; }; \
 	find "$(PROJECT_DIR)" -type f -name '*.out' -print -delete
